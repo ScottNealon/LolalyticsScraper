@@ -6,7 +6,7 @@ with open(Path(__file__).parent.joinpath("requirements.txt"), "r") as file_handl
     requirements = file_handle.readlines()
 
 setup(
-    name="lolalytics scraper",
+    name="lolalytics_scraper",
     package_dir=find_packages(),
     license="MIT",
     version="0.0",
