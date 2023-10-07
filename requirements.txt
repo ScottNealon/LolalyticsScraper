@@ -1,0 +1,7 @@
+adjustText
+requests
+numpy
+pandas
+tqdm
+black
+matplotlib
