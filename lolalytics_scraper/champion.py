@@ -7,10 +7,10 @@ import pandas as pd
 from adjustText import adjust_text
 from matplotlib.ticker import PercentFormatter
 
-from src import INVERSE_CHAMPION_IDS
+from lolalytics_scraper import INVERSE_CHAMPION_IDS
 
 if TYPE_CHECKING:
-    from src.roster import Roster
+    from lolalytics_scraper.roster import Roster
 
 
 def win_rate_to_elo(win_rate: float) -> float:

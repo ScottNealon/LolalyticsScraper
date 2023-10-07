@@ -1,4 +1,4 @@
-from src.roster import Roster
+from lolalytics_scraper.roster import Roster
 
 roster = Roster()
 

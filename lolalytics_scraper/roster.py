@@ -10,9 +10,9 @@ from adjustText import adjust_text
 from matplotlib.ticker import PercentFormatter
 
 # Module imports
-from src import CHAMPION_IDS, LOLALYTICS_DATA
-from src.champion import Champion
-from src.graph_util import add_hover_annotations
+from lolalytics_scraper import CHAMPION_IDS, LOLALYTICS_DATA
+from lolalytics_scraper.champion import Champion
+from lolalytics_scraper.graph_util import add_hover_annotations
 
 
 class Roster:
