@@ -280,7 +280,9 @@ class Roster:
             }
 
         champion_pool_results_df = (
-            pd.DataFrame(champion_pool_results).transpose().sort_values(by="Counterpick Rate", ascending=False)
+            pd.DataFrame(champion_pool_results)
+            .transpose()
+            .sort_values(by="Marginal Win Rate Improvement", ascending=False)
         )
         champion_pool_results_df.index.name = "Champion Pool"
 
