@@ -297,28 +297,38 @@ class Roster:
             improvement_matchups = matchups_df[matchup_win_rates > matchups_df["Best Counterpick Win Rate"]]
             # Identify frequency of counterpick
             improvement_pick_rate = improvement_matchups["Opponent Pick Rate"].sum()
-            # Identify win rate of counterpick
-            improvement_win_rate = (
-                improvement_matchups["Opponent Pick Rate"] * matchup_win_rates[improvement_matchups.index]
-            ).sum() / improvement_pick_rate
-            # Identify improvement of win rate overall
-            marginal_win_rate_improvement = (
-                improvement_matchups["Opponent Pick Rate"]
-                * (matchup_win_rates[improvement_matchups.index] - improvement_matchups["Best Counterpick Win Rate"])
-            ).sum()
-            # Identify improvement of win rate per match picked
-            marginal_win_rate_improvement_per_match = marginal_win_rate_improvement / improvement_pick_rate
-            # Calculate how much more you win with this champion versus the champion's default win rate
-            improvement_over_base_champion_win_rate = improvement_win_rate - candidate_champion.raw_win_rate
-            # Identify opponents with the biggest improvement against
-            biggest_impact_opponents = (
-                (matchup_win_rates[improvement_matchups.index] - improvement_matchups["Best Counterpick Win Rate"])
-                * improvement_matchups["Opponent Pick Rate"]
-            ).sort_values(ascending=False)
-            biggest_impact_opponents_list = [
-                f'{champion.name}: +{100 * (matchup_win_rates[improvement_matchups.index] - improvement_matchups["Best Counterpick Win Rate"])[champion]:.2f}%'
-                for champion in biggest_impact_opponents.index[:3]
-            ]
+            if improvement_pick_rate > 0:
+                # Identify win rate of counterpick
+                improvement_win_rate = (
+                    improvement_matchups["Opponent Pick Rate"] * matchup_win_rates[improvement_matchups.index]
+                ).sum() / improvement_pick_rate
+                # Identify improvement of win rate overall
+                marginal_win_rate_improvement = (
+                    improvement_matchups["Opponent Pick Rate"]
+                    * (
+                        matchup_win_rates[improvement_matchups.index]
+                        - improvement_matchups["Best Counterpick Win Rate"]
+                    )
+                ).sum()
+                # Identify improvement of win rate per match picked
+                marginal_win_rate_improvement_per_match = marginal_win_rate_improvement / improvement_pick_rate
+                # Calculate how much more you win with this champion versus the champion's default win rate
+                improvement_over_base_champion_win_rate = improvement_win_rate - candidate_champion.raw_win_rate
+                # Identify opponents with the biggest improvement against
+                biggest_impact_opponents = (
+                    (matchup_win_rates[improvement_matchups.index] - improvement_matchups["Best Counterpick Win Rate"])
+                    * improvement_matchups["Opponent Pick Rate"]
+                ).sort_values(ascending=False)
+                biggest_impact_opponents_list = [
+                    f'{champion.name}: +{100 * (matchup_win_rates[improvement_matchups.index] - improvement_matchups["Best Counterpick Win Rate"])[champion]:.2f}%'
+                    for champion in biggest_impact_opponents.index[:3]
+                ]
+            else:
+                improvement_win_rate = 0
+                marginal_win_rate_improvement = 0
+                marginal_win_rate_improvement_per_match = 0
+                improvement_over_base_champion_win_rate = 0
+                biggest_impact_opponents_list = []
             # Identify best ban
             base_blind_expected_win_rate = candidate_champion.blind_expected_win_rate(num_opponent_champions)
             best_bans = candidate_champion.blind_pick_ban_win_rate_improvements(num_opponent_champions)
