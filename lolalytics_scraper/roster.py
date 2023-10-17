@@ -221,6 +221,26 @@ class Roster:
                 second_best_counterpick_N = 0
             counterpick_win_rate_improvement = best_counterpick_win_rate - second_best_counterpick_win_rate
 
+            best_counterpick_of_them_all: Champion = (
+                pd.Series(
+                    {
+                        champion: 1 - opponent_champion.normalized_matchup_win_rates[champion]
+                        for champion in self.get_valid_champions(role)
+                    }
+                )
+                .sort_values(ascending=False)
+                .index[0]
+            )
+            best_counterpick_possible_win_rate = best_counterpick_of_them_all.normalized_matchup_win_rates[
+                opponent_champion
+            ]
+            remaining_win_rate_improvement = best_counterpick_possible_win_rate - best_counterpick_win_rate
+            best_counterpick_possible = (
+                f"{best_counterpick_of_them_all.name}: +{100*remaining_win_rate_improvement:.2f}%"
+                if remaining_win_rate_improvement > 0
+                else "None"
+            )
+
             matchups[opponent_champion] = {
                 "Opponent Pick Rate": opponent_champion.pick_rate,
                 "Best Counterpick": best_counterpick,
@@ -230,6 +250,7 @@ class Roster:
                 "Second Best Counterpick Win Rate": second_best_counterpick_win_rate,
                 "Second Best Counterpick N": second_best_counterpick_N,
                 "Counterpick Win Rate Improvement": counterpick_win_rate_improvement,
+                "Remaining Possible Improvement": best_counterpick_possible,
             }
 
         matchups_df = pd.DataFrame(matchups).transpose()  # .sort_values(by="Opponent Pick Rate", ascending=False)
