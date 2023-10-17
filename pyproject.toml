@@ -11,3 +11,9 @@ dependencies = [
     "matplotlib",
     "jinja2"
 ]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+lolalytics_scraper.data = ["*.txt", "*.json"]
