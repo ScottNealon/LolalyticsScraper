@@ -2,11 +2,11 @@
 name = "Lolalytics Scraper"
 version = "0.0"
 dependencies = [
-    "adjustText"
-    "requests"
-    "numpy"
-    "pandas"
-    "tqdm"
-    "matplotlib"
+    "adjustText",
+    "requests",
+    "numpy",
+    "pandas",
+    "tqdm",
+    "matplotlib",
     "jinja2"
 ]
