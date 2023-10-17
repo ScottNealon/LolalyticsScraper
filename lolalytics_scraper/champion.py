@@ -36,10 +36,11 @@ class Champion:
 
     def _format_lolaytic_data(self):
         for enemy_role in ["top", "jungle", "middle", "bottom", "support"]:
-            self._lolalytics_data[f"enemy_{enemy_role}"] = {
-                champion_id: {"matches": matches, "wins": wins, "win_rate": wins / matches}
-                for champion_id, matches, wins, _ in self._lolalytics_data[f"enemy_{enemy_role}"]
-            }
+            if not (isinstance(self._lolalytics_data[f"enemy_{enemy_role}"], dict)):
+                self._lolalytics_data[f"enemy_{enemy_role}"] = {
+                    champion_id: {"matches": matches, "wins": wins, "win_rate": wins / matches}
+                    for champion_id, matches, wins, _ in self._lolalytics_data[f"enemy_{enemy_role}"]
+                }
 
     @property
     def name(self) -> str:
