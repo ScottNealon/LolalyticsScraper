@@ -7,7 +7,7 @@ from pathlib import Path
 import requests
 import tqdm
 
-DATA_DIR_PATH = Path(__file__).parent.parent.joinpath("data")
+DATA_DIR_PATH = Path(__file__).parent.joinpath("data")
 
 with open(DATA_DIR_PATH.joinpath("champion_ids.json"), "r") as file_handle:
     CHAMPION_IDS: dict[str, int] = json.load(file_handle)
