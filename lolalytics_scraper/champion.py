@@ -165,7 +165,7 @@ class Champion:
 
     def blind_expected_win_rate(self, num_opponent_champions: int, _ignore_champion: "Champion" = None) -> float:
         """
-        Measurement of the expected winrate of blind picking a champion assuming opponent will pick the worst matchup
+        Measurement of the expected winrate of blind picking a champion assuming opponent will pick the best matchup
         they have available.
         """
 
