@@ -210,20 +210,25 @@ class Roster:
             ).sort_values(ascending=False)
             best_counterpick = opponent_win_rates.index[0]
             best_counterpick_win_rate = opponent_win_rates[best_counterpick]
+            best_counterpick_N = opponent_champion.normalized_matchup_N[best_counterpick]
             if len(counterpick_pool) > 1:
                 second_best_counterpick = opponent_win_rates.index[1]
                 second_best_counterpick_win_rate = opponent_win_rates[second_best_counterpick]
+                second_best_counterpick_N = opponent_champion.normalized_matchup_N[second_best_counterpick]
             else:
                 second_best_counterpick = None
                 second_best_counterpick_win_rate = pd.NA
+                second_best_counterpick_N = 0
             counterpick_win_rate_improvement = best_counterpick_win_rate - second_best_counterpick_win_rate
 
             matchups[opponent_champion] = {
                 "Opponent Pick Rate": opponent_champion.pick_rate,
                 "Best Counterpick": best_counterpick,
                 "Best Counterpick Win Rate": best_counterpick_win_rate,
+                "Best Counterpick N": best_counterpick_N,
                 "Second Best Counterpick": second_best_counterpick,
                 "Second Best Counterpick Win Rate": second_best_counterpick_win_rate,
+                "Second Best Counterpick N": second_best_counterpick_N,
                 "Counterpick Win Rate Improvement": counterpick_win_rate_improvement,
             }
 

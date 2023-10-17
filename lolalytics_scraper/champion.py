@@ -73,13 +73,27 @@ class Champion:
         return self._lolalytics_data["nav"]["lanes"][self.role] / 100
 
     @functools.cached_property
-    def raw_matchup_win_rates(self) -> dict["Champion" : dict[str]]:
+    def raw_matchup_N(self) -> pd.Series:
+        return pd.Series({champion: self._get_matchup_N(champion) for champion in self._roster.champions})
+
+    def _get_raw_matchup_N(self, champion: "Champion") -> int:
+        return self._lolalytics_data[f"enemy_{champion.role}"].get(champion.id, {}).get("matches", 0)
+
+    @functools.cached_property
+    def raw_matchup_win_rates(self) -> pd.Series:
         return pd.Series(
             {champion: self._get_raw_matchup_win_rate_by_champion(champion) for champion in self._roster.champions}
         )
 
     def _get_raw_matchup_win_rate_by_champion(self, champion: "Champion") -> float:
         return self._lolalytics_data[f"enemy_{champion.role}"].get(champion.id, {}).get("win_rate", np.nan)
+
+    @functools.cached_property
+    def normalized_matchup_N(self) -> pd.Series:
+        return pd.Series({champion: self._get_normalized_matchup_N(champion) for champion in self._roster.champions})
+
+    def _get_normalized_matchup_N(self, champion: "Champion") -> float:
+        return int((self._get_raw_matchup_N(champion) + champion._get_raw_matchup_N(self)) / 2)
 
     @functools.cached_property
     def normalized_matchup_win_rates(self) -> pd.Series:
