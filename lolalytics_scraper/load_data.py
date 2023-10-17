@@ -71,7 +71,7 @@ def update_lolalytics_champion_data(
             "queue": queue,
             "region": region,
         }
-        api_call = f"https://ax.lolalytics.com/mega/?ep=champion&p=d&v=1{'&'.join(f'{key}={value}' for key, value in api_key_mapping.items() if value != None)}"
+        api_call = f"https://ax.lolalytics.com/mega/?ep=champion&p=d&v=1&{'&'.join(f'{key}={value}' for key, value in api_key_mapping.items() if value != None)}"
         page = requests.get(api_call)
         data = json.loads(page.text)
         assert page.status_code == 200
