@@ -272,25 +272,36 @@ class Roster:
             counterpick_matchups = matchups_df[matchups_df["Best Counterpick"] == champion]
             # Calculate how often you pick this champion as a counterpick
             counterpick_rate = counterpick_matchups["Opponent Pick Rate"].sum()
-            # Calculate how often you win when you counterpick this champion
-            counterpick_win_rate = (
-                counterpick_matchups["Opponent Pick Rate"] * counterpick_matchups["Best Counterpick Win Rate"]
-            ).sum() / counterpick_rate
-            # Calculate how much more often you win because this champion is now included in your champion pool
-            counterpick_matchups_with_second_pick = counterpick_matchups[
-                ~counterpick_matchups["Second Best Counterpick Win Rate"].isna()
-            ]
-            marginal_win_rate_improvement = (
-                counterpick_matchups_with_second_pick["Opponent Pick Rate"]
-                * (
-                    counterpick_matchups_with_second_pick["Best Counterpick Win Rate"]
-                    - counterpick_matchups_with_second_pick["Second Best Counterpick Win Rate"]
+            if counterpick_rate > 0:
+                # Calculate how often you win when you counterpick this champion
+                counterpick_win_rate = (
+                    counterpick_matchups["Opponent Pick Rate"] * counterpick_matchups["Best Counterpick Win Rate"]
+                ).sum() / counterpick_rate
+                # Calculate how much more often you win because this champion is now included in your champion pool
+                counterpick_matchups_with_second_pick = counterpick_matchups[
+                    ~counterpick_matchups["Second Best Counterpick Win Rate"].isna()
+                ]
+                marginal_win_rate_improvement = (
+                    (
+                        counterpick_matchups_with_second_pick["Opponent Pick Rate"]
+                        * (
+                            counterpick_matchups_with_second_pick["Best Counterpick Win Rate"]
+                            - counterpick_matchups_with_second_pick["Second Best Counterpick Win Rate"]
+                        )
+                    ).sum()
+                    if counterpick_rate > 0
+                    else pd.NA
                 )
-            ).sum()
-            # Calculate how much more you win Per Match becuase this champion is now included in your champion pool
-            marginal_win_rate_improvement_per_match = marginal_win_rate_improvement / counterpick_rate
-            # Calculate how much more you win with this champion versus the champion's default win rate
-            improvement_over_base_champion_win_rate = counterpick_win_rate - champion.raw_win_rate
+                # Calculate how much more you win Per Match becuase this champion is now included in your champion pool
+                marginal_win_rate_improvement_per_match = marginal_win_rate_improvement / counterpick_rate
+                # Calculate how much more you win with this champion versus the champion's default win rate
+                improvement_over_base_champion_win_rate = counterpick_win_rate - champion.raw_win_rate
+
+            else:
+                counterpick_win_rate = pd.NA
+                marginal_win_rate_improvement = pd.NA
+                marginal_win_rate_improvement_per_match = pd.NA
+                improvement_over_base_champion_win_rate = pd.NA
             # Identify best bans
             base_blind_expected_win_rate = champion.blind_expected_win_rate(num_opponent_champions)
             best_bans = champion.blind_pick_ban_win_rate_improvements(num_opponent_champions)
