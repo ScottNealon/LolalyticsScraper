@@ -57,7 +57,7 @@ def update_lolalytics_champion_data(
     tier: str = "platinum_plus",
     region: str = "all",
 ) -> dict[str, dict]:
-    LOLALYTICS_DATA = {}
+    LOLALYTICS_DATA.clear()
     iterator = tqdm.tqdm(
         tuple(itertools.product(CHAMPION_IDS.items(), ["top", "jungle", "middle", "bottom", "support"]))
     )
