@@ -302,6 +302,13 @@ class Roster:
                 marginal_win_rate_improvement = pd.NA
                 marginal_win_rate_improvement_per_match = pd.NA
                 improvement_over_base_champion_win_rate = pd.NA
+
+            # Identify how often you are within 1% of being best counterpick
+            almost_counterpick_rate = matchups_df[
+                matchups_df["Best Counterpick Win Rate"] - 0.01
+                <= champion.normalized_matchup_win_rates[matchups_df.index]
+            ]["Opponent Pick Rate"].sum()
+
             # Identify best bans
             base_blind_expected_win_rate = champion.blind_expected_win_rate(num_opponent_champions)
             best_bans = champion.blind_pick_ban_win_rate_improvements(num_opponent_champions)
@@ -312,6 +319,7 @@ class Roster:
 
             champion_pool_results[champion] = {
                 "Counterpick Rate": counterpick_rate,
+                "Within 1% Counterpick Rate": almost_counterpick_rate,
                 "Counterpick Win Rate": counterpick_win_rate,
                 "Marginal Win Rate Improvement": marginal_win_rate_improvement,
                 "Marginal Win Rate Improvement Per Match": marginal_win_rate_improvement_per_match,
