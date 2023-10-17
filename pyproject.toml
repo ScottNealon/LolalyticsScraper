@@ -16,4 +16,4 @@ dependencies = [
 where = ["src"]
 
 [tool.setuptools.package-data]
-lolalytics_scraper.data = ["*.txt", "*.json"]
+"lolalytics_scraper.data" = ["*.txt", "*.json"]
