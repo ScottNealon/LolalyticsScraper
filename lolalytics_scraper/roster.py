@@ -265,7 +265,7 @@ class Roster:
             matchups_df["Opponent Pick Rate"] * (matchups_df["Best Counterpick Win Rate"] - mean_win_rate)
         ).sort_values()
         matchups_df["Matchup Win Rate vs Baseline Impact"] = matchup_vs_baseline
-        matchups_df = matchups_df.sort_values("Matchup Win Rate vs Baseline Impact")
+        # matchups_df = matchups_df.sort_values("Matchup Win Rate vs Baseline Impact")
 
         champion_pool_results = {}
         for champion in champion_pool:
@@ -334,6 +334,16 @@ class Roster:
             .sort_values(by="Marginal Win Rate Improvement", ascending=False)
         )
         champion_pool_results_df.index.name = "Champion Pool"
+
+        # Resort matchups based on ordered champion picks
+        matchups_df["order"] = matchups_df["Best Counterpick"].apply(
+            lambda v: list(champion_pool_results_df.index).index(v)
+        )
+        matchups_df = matchups_df.sort_values(by=["order", "Opponent Pick Rate"], ascending=[True, False])
+        matchups_df = matchups_df.drop(
+            "order",
+            axis="columns",
+        )
 
         # Determine how good adding differen champions to pool would be
         candidate_champions = {}
