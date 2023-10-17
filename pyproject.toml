@@ -1,6 +1,7 @@
-[metadata]
+[project]
 name = "Lolalytics Scraper"
 version = "0.0"
+requires-python = ">=3.10"
 dependencies = [
     "adjustText",
     "requests",
