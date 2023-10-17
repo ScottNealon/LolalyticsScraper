@@ -204,7 +204,7 @@ class Roster:
             counterpick_pool = [champion for champion in champion_pool if champion is not opponent_champion]
             opponent_win_rates = pd.Series(
                 {
-                    counterpick_champion: counterpick_champion.raw_matchup_win_rates[opponent_champion]
+                    counterpick_champion: counterpick_champion.normalized_matchup_win_rates[opponent_champion]
                     for counterpick_champion in counterpick_pool
                 }
             ).sort_values(ascending=False)
