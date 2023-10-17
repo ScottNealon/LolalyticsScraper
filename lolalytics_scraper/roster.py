@@ -192,7 +192,9 @@ class Roster:
         # Show
         plt.show(block=False)
 
-    def analyze_champion_pool(self, champion_pool: list[Champion], num_opponent_champions: int = 5):
+    def analyze_champion_pool(
+        self, champion_pool: list[Champion], num_opponent_champions: int = 5
+    ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         role = champion_pool[0].role
 
         # Verify all champions are for the same lane
