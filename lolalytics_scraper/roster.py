@@ -415,3 +415,47 @@ class Roster:
         candidate_champions_df.index.name = "Candidate Champions"
 
         return champion_pool_results_df, matchups_df, candidate_champions_df
+
+    def display_champion_pool_analysis(self, champion_pool: list[Champion], num_opponent_champions: int = 5):
+        champion_pool_results_df, matchups_df, candidate_champions_df = self.analyze_champion_pool(
+            champion_pool, num_opponent_champions
+        )
+
+        format_func = lambda s: f"{s:,}" if isinstance(s, int) else f"{s:.2%}" if isinstance(s, float) else s
+
+        champion_pool_results_style = champion_pool_results_df.style
+        champion_pool_results_style.format(format_func)
+        champion_pool_results_style.bar(subset=["Counterpick Rate", "Within 1% Counterpick Rate"], color="green")
+        champion_pool_results_style.bar(
+            subset=["Counterpick Win Rate", "Blind Pick Base Win Rate"], align="left", color="green"
+        )
+
+        matchups_style = matchups_df.style
+        matchups_style.format(format_func)
+        matchups_style.bar(subset=["Opponent Pick Rate", "Best Counterpick N", "Second Best Counterpick N"])
+        matchups_style.bar(
+            subset=["Best Counterpick Win Rate", "Second Best Counterpick Win Rate"],
+            color="green",
+            align="left",
+            vmin=min(
+                matchups_df["Best Counterpick Win Rate"].min(), matchups_df["Second Best Counterpick Win Rate"].min()
+            ),
+            vmax=max(
+                matchups_df["Best Counterpick Win Rate"].max(), matchups_df["Second Best Counterpick Win Rate"].max()
+            ),
+        )
+
+        candidate_champions_style = candidate_champions_df.style
+        candidate_champions_style.format(format_func)
+        candidate_champions_style.bar(subset=["Counterpick Rate"], color="green")
+        candidate_champions_style.bar(
+            subset=["Counterpick Win Rate"],
+            align="left",
+            color="green",
+            vmin=candidate_champions_df[candidate_champions_df["Counterpick Win Rate"] > 0][
+                "Counterpick Win Rate"
+            ].min(),
+        )
+        candidate_champions_style.bar(subset=["Blind Pick Base Win Rate"], align="left", color="green")
+
+        return champion_pool_results_style, matchups_style, candidate_champions_style
