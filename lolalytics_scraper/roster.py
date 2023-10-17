@@ -17,6 +17,10 @@ from lolalytics_scraper.graph_util import add_hover_annotations
 
 class Roster:
     def __init__(self):
+        if len(LOLALYTICS_DATA) == 0:
+            raise ValueError(
+                "Unable to initialize Roster(): Missing LOLALYTICS DATA. Run lolalytics_scraper.load_data.update_lolalytics_champion_data(...)"
+            )
         self._champions: dict[int, dict[str, Champion]] = {}
         self._create_champions()
 

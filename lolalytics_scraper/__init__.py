@@ -1,4 +1,4 @@
-from lolalytics_scraper.load_data import (
+from .load_data import (
     CHAMPION_IDS,
     INVERSE_CHAMPION_IDS,
     ITEM_DATA,
