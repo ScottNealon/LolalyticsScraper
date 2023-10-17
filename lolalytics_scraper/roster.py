@@ -342,7 +342,7 @@ class Roster:
                 continue
 
             # Identify matchups where you could outperform current champion pool
-            matchup_win_rates = candidate_champion.raw_matchup_win_rates[matchups_df.index]
+            matchup_win_rates = candidate_champion.normalized_matchup_win_rates[matchups_df.index]
             improvement_matchups = matchups_df[matchup_win_rates > matchups_df["Best Counterpick Win Rate"]]
             # Identify frequency of counterpick
             improvement_pick_rate = improvement_matchups["Opponent Pick Rate"].sum()
