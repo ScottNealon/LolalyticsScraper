@@ -1,6 +1,5 @@
 # Standard library
 import functools
-import os
 from typing import Union
 
 # Third party imports
