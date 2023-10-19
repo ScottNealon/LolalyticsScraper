@@ -4,6 +4,7 @@ import itertools
 import json
 import re
 from pathlib import Path
+from statistics import mode
 
 # Third Party
 import requests
@@ -76,7 +77,7 @@ def update_lolalytics_champion_data(
     tier: str,
     region: str,
     use_cache: bool,
-) -> dict[str, dict]:
+) -> tuple[dict[str, dict], int, float]:
     # Reformat defaults
     patches = [patch if patch != "latest" else ".".join(latest_patch.split(".")[:-1]) for patch in patches]
 
@@ -145,12 +146,41 @@ def update_lolalytics_champion_data(
                 json.dump(raw_lolalytics_data[patch], file_handler, indent=4)
 
     # Format data
-    lolalytics_data = format_lolalytics_data(raw_lolalytics_data)
+    lolalytics_data, analyzed, rank_win_rate = format_lolalytics_data(raw_lolalytics_data)
 
-    return lolalytics_data
+    return lolalytics_data, analyzed, rank_win_rate
+
+
+def get_total_analyzed_and_rank_win_rate(raw_lolalytics_data: dict[str, dict]) -> tuple[int, float]:
+    """Across all patches, collect the total number of champions analyzed and rank win rate"""
+    patch_analyzed = {
+        patch: mode(
+            champion_role_data.get("analysed", 0)
+            for champion_data in patch_data.values()
+            for champion_role_data in champion_data.values()
+        )
+        for patch, patch_data in raw_lolalytics_data.items()
+    }
+    patch_rank_win_rate = {
+        patch: mode(
+            champion_role_data.get("avgWinRate", 0)
+            for champion_data in patch_data.values()
+            for champion_role_data in champion_data.values()
+        )
+        / 100  # Divide by 100 to turn into 0.0 to 1.0 percentage
+        for patch, patch_data in raw_lolalytics_data.items()
+    }
+    analyzed = sum(patch_analyzed.values())
+    rank_win_rate = (
+        sum(patch_analyzed[patch] * patch_rank_win_rate[patch] for patch in raw_lolalytics_data.keys()) / analyzed
+    )
+    return analyzed, rank_win_rate
 
 
 def format_lolalytics_data(raw_lolalytics_data: dict[str, dict]) -> dict[int, dict[str, dict]]:
+    analyzed, rank_win_rate = get_total_analyzed_and_rank_win_rate(raw_lolalytics_data)
+
+    # Reformat into champion -> role -> patch structure
     lolalytics_data = {}
     for patch, patch_data in raw_lolalytics_data.items():
         for champion_id, champion_data in patch_data.items():
@@ -174,32 +204,7 @@ def format_lolalytics_data(raw_lolalytics_data: dict[str, dict]) -> dict[int, di
             # but I would want to know about those errors and address them here later than to have them pass though by
             # mistake.
             if len(champion_role_data.keys()) > 1:
-                total_n = sum(patch_data.get("n", 0) for patch, patch_data in champion_role_data.items())
-                total_analyzed = sum(patch_data.get("analysed", 0) for patch, patch_data in champion_role_data.items())
-                total_pick_rate = 10 * 100 * total_n / total_analyzed
-                lane_rate = {
-                    role: sum(
-                        patch_data.get("n", 0) * patch_data.get("nav", {}).get("lanes", {}).get(role, 0)
-                        for patch, patch_data in champion_role_data.items()
-                    )
-                    / total_n
-                    for role in ROLES
-                }
-                total_average_win_rate = (
-                    sum(
-                        patch_data.get("avgWinRate", 0) * patch_data.get("n", 0)
-                        for patch, patch_data in champion_role_data.items()
-                    )
-                    / total_n
-                )
-
-                new_lolalytics_data.setdefault(champion_id, {})[champion_role] = {
-                    "n": total_n,
-                    "analysed": total_analyzed,
-                    "pr": total_pick_rate,
-                    "avgWinRate": total_average_win_rate,
-                    "nav": {"lanes": lane_rate},
-                }
+                new_lolalytics_data.setdefault(champion_id, {})[champion_role] = {}
 
                 for patch, patch_data in champion_role_data.items():
                     for enemy_role in ROLES:
@@ -232,7 +237,7 @@ def format_lolalytics_data(raw_lolalytics_data: dict[str, dict]) -> dict[int, di
             else:
                 new_lolalytics_data.setdefault(champion_id, {})[champion_role] = list(champion_role_data.values())[0]
 
-    return new_lolalytics_data
+    return new_lolalytics_data, analyzed, rank_win_rate
 
 
 def get_latest_patch():
@@ -277,8 +282,8 @@ def update_data(patches: list[str], queue: int, tier: str, region: str, use_cach
     with open(ITEMS_PATH, "r") as file_handle:
         item_data: dict[str, dict[str, str]] = json.load(file_handle)
 
-    lolalytics_data = update_lolalytics_champion_data(
+    lolalytics_data, analyzed, rank_win_rate = update_lolalytics_champion_data(
         champion_ids, latest_patch, patches, queue, tier, region, use_cache
     )
 
-    return champion_ids, inverse_champion_ids, rune_data, item_data, lolalytics_data
+    return champion_ids, inverse_champion_ids, rune_data, item_data, lolalytics_data, analyzed, rank_win_rate

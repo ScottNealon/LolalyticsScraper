@@ -7,6 +7,8 @@ import pandas as pd
 from adjustText import adjust_text
 from matplotlib.ticker import PercentFormatter
 
+from lolalytics_scraper import ROLES
+
 if TYPE_CHECKING:
     from lolalytics_scraper.roster import Roster
 
@@ -36,31 +38,33 @@ class Champion:
     def name(self) -> str:
         return self._roster._inverse_champion_ids[self.id]
 
-    @property
+    @functools.cached_property
     def n(self) -> int:
-        return self._lolalytics_data["n"]
+        return int(self.raw_matchup_N.sum() / 5)
 
-    @property
+    @functools.cached_property
     def raw_win_rate(self) -> float:
-        return self._lolalytics_data["avgWinRate"] / 100
+        """Raw win rate data from Lolalytics without accounting for rank or opponent's perspective"""
+        return (self.raw_matchup_N * self.raw_matchup_win_rates.fillna(0)).sum() / self.raw_matchup_N.sum()
 
-    @property
+    @functools.cached_property
     def rank_normalized_win_rate(self) -> float:
-        return self.raw_win_rate - (self._lolalytics_data["avgWinRate"] / 100 - 0.5)
+        """Win rate adjusted for rank win rate inflation"""
+        return self.raw_win_rate - (self._roster.rank_win_rate - 0.5)
 
-    @property
+    @functools.cached_property
     def pick_rate(self) -> float:
         """How often is this champion-role assignment picked"""
-        return 10 * self._lolalytics_data["n"] / self._lolalytics_data["analysed"]
+        return 10 * self.n / self._roster.analyzed
 
-    @property
+    @functools.cached_property
     def role_assignment(self) -> float:
         """How often, when this champion is picked, is it picked in this lane"""
-        return self._lolalytics_data["nav"]["lanes"][self.role] / 100
+        return self.n / sum(self._roster.get_champion_by_name(self.name, role).n for role in ROLES)
 
     @functools.cached_property
     def raw_matchup_N(self) -> pd.Series:
-        return pd.Series({champion: self._get_matchup_N(champion) for champion in self._roster.champions})
+        return pd.Series({champion: self._get_raw_matchup_N(champion) for champion in self._roster.champions})
 
     def _get_raw_matchup_N(self, champion: "Champion") -> int:
         return self._lolalytics_data[f"enemy_{champion.role}"].get(champion.id, {}).get("matches", 0)

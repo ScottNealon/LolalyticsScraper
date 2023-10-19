@@ -28,22 +28,29 @@ class Roster:
         self._create_champions()
 
     def _update_data(self, patches, queue, tier, region, use_cache):
-        champion_ids, inverse_champion_ids, rune_data, item_data, lolalytics_data = update_data(
-            patches, queue, tier, region, use_cache
-        )
+        (
+            champion_ids,
+            inverse_champion_ids,
+            rune_data,
+            item_data,
+            lolalytics_data,
+            analyzed,
+            rank_win_rate,
+        ) = update_data(patches, queue, tier, region, use_cache)
         self._champion_ids = champion_ids
         self._inverse_champion_ids = inverse_champion_ids
         self._rune_data = rune_data
         self._item_data = item_data
         self._lolalytics_data = lolalytics_data
+        self.analyzed = analyzed
+        self.rank_win_rate = rank_win_rate
 
     def _create_champions(self):
         self._champions: dict[int, dict[str, Champion]] = {}
         for champion_id, champion_data in self._lolalytics_data.items():
             for role, champion_role_data in champion_data.items():
-                if "n" in champion_role_data:  # Only create champion objects that actually returned valid data
-                    champion = Champion(champion_id, role, champion_role_data, self)
-                    self._champions.setdefault(champion_id, {})[champion.role] = champion
+                champion = Champion(champion_id, role, champion_role_data, self)
+                self._champions.setdefault(champion_id, {})[champion.role] = champion
 
     @functools.cached_property
     def champions(self):
