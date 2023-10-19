@@ -456,7 +456,14 @@ class Roster:
 
         matchups_style = matchups_df.style
         matchups_style.format(format_func)
-        matchups_style.bar(subset=["Opponent Pick Rate", "Best Counterpick N", "Second Best Counterpick N"])
+        matchups_style.bar(
+            subset=[
+                "Opponent Pick Rate",
+                "Best Counterpick N",
+                "Second Best Counterpick N",
+                "Counterpick Win Rate Improvement",
+            ]
+        )
         matchups_style.bar(
             subset=["Best Counterpick Win Rate", "Second Best Counterpick Win Rate"],
             color="green",
