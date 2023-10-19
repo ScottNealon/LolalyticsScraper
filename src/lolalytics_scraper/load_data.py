@@ -14,6 +14,7 @@ RUNES_PATH = DATA_DIR_PATH.joinpath("runes.json")
 ITEMS_PATH = DATA_DIR_PATH.joinpath("items.json")
 CHAMPION_ID_PATH = DATA_DIR_PATH.joinpath("champion_ids.json")
 LOLALYTICS_DIR_PATH = DATA_DIR_PATH.joinpath("lolalytics")
+LOLALYTICS_DIR_PATH.mkdir(exist_ok=True)
 
 
 def update_runes_data(patch_number: str):
