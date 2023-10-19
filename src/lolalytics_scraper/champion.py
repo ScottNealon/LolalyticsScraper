@@ -7,8 +7,6 @@ import pandas as pd
 from adjustText import adjust_text
 from matplotlib.ticker import PercentFormatter
 
-from lolalytics_scraper import INVERSE_CHAMPION_IDS
-
 if TYPE_CHECKING:
     from lolalytics_scraper.roster import Roster
 
@@ -28,35 +26,23 @@ def elo_to_win_rate(elo: float) -> float:
 
 
 class Champion:
-    def __init__(self, id: int, lolalytic_data: dict, roster: "Roster"):
+    def __init__(self, id: int, role: str, lolalytic_data: dict, roster: "Roster"):
         self.id = id
+        self.role = role
         self._lolalytics_data = lolalytic_data
         self._roster = roster
-        self._format_lolaytic_data()
-
-    def _format_lolaytic_data(self):
-        for enemy_role in ["top", "jungle", "middle", "bottom", "support"]:
-            if not (isinstance(self._lolalytics_data[f"enemy_{enemy_role}"], dict)):
-                self._lolalytics_data[f"enemy_{enemy_role}"] = {
-                    champion_id: {"matches": matches, "wins": wins, "win_rate": wins / matches}
-                    for champion_id, matches, wins, _ in self._lolalytics_data[f"enemy_{enemy_role}"]
-                }
 
     @property
     def name(self) -> str:
-        return INVERSE_CHAMPION_IDS[self.id]
-
-    @property
-    def role(self) -> str:
-        return self._lolalytics_data["header"]["lane"]
+        return self._roster._inverse_champion_ids[self.id]
 
     @property
     def n(self) -> int:
-        return self._lolalytics_data["header"]["n"]
+        return self._lolalytics_data["n"]
 
     @property
     def raw_win_rate(self) -> float:
-        return self._lolalytics_data["header"]["wr"] / 100
+        return self._lolalytics_data["avgWinRate"] / 100
 
     @property
     def rank_normalized_win_rate(self) -> float:
@@ -65,7 +51,7 @@ class Champion:
     @property
     def pick_rate(self) -> float:
         """How often is this champion-role assignment picked"""
-        return self._lolalytics_data["header"]["pr"] / 100
+        return 10 * self._lolalytics_data["n"] / self._lolalytics_data["analysed"]
 
     @property
     def role_assignment(self) -> float:

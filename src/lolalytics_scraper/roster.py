@@ -10,25 +10,40 @@ from adjustText import adjust_text
 from matplotlib.ticker import PercentFormatter
 
 # Module imports
-from lolalytics_scraper import CHAMPION_IDS, LOLALYTICS_DATA
 from lolalytics_scraper.champion import Champion
 from lolalytics_scraper.graph_util import add_hover_annotations
+from lolalytics_scraper.load_data import LOLALYTICS_QUEUES_MAP, update_data
 
 
 class Roster:
-    def __init__(self):
-        if len(LOLALYTICS_DATA) == 0:
-            raise ValueError(
-                "Unable to initialize Roster(): Missing LOLALYTICS DATA. Run lolalytics_scraper.load_data.update_lolalytics_champion_data(...)"
-            )
-        self._champions: dict[int, dict[str, Champion]] = {}
+    def __init__(
+        self,
+        patches: list[str] = ["latest"],
+        queue: str = LOLALYTICS_QUEUES_MAP["Solo/Duo"],
+        tier: str = "plat_plus",
+        region: str = "all",
+        use_cache: bool = True,
+    ):
+        self._update_data(patches, queue, tier, region, use_cache)
         self._create_champions()
 
+    def _update_data(self, patches, queue, tier, region, use_cache):
+        champion_ids, inverse_champion_ids, rune_data, item_data, lolalytics_data = update_data(
+            patches, queue, tier, region, use_cache
+        )
+        self._champion_ids = champion_ids
+        self._inverse_champion_ids = inverse_champion_ids
+        self._rune_data = rune_data
+        self._item_data = item_data
+        self._lolalytics_data = lolalytics_data
+
     def _create_champions(self):
-        for champion_id, champion_data in LOLALYTICS_DATA.items():
-            for champion_role_data in champion_data.values():
-                champion = Champion(champion_id, champion_role_data, self)
-                self._champions.setdefault(champion_id, {})[champion.role] = champion
+        self._champions: dict[int, dict[str, Champion]] = {}
+        for champion_id, champion_data in self._lolalytics_data.items():
+            for role, champion_role_data in champion_data.items():
+                if "n" in champion_role_data:  # Only create champion objects that actually returned valid data
+                    champion = Champion(champion_id, role, champion_role_data, self)
+                    self._champions.setdefault(champion_id, {})[champion.role] = champion
 
     @functools.cached_property
     def champions(self):
@@ -75,7 +90,7 @@ class Roster:
             return self._champions[champion_id]
 
     def get_champion_by_name(self, champion_name: str, role: str = None) -> Union[Champion, tuple[Champion]]:
-        return self.get_champion_by_id(CHAMPION_IDS[champion_name], role)
+        return self.get_champion_by_id(self._champion_ids[champion_name], role)
 
     def get_normalized_matchup_win_rates(self):
         return pd.DataFrame({champion: champion.normalized_matchup_win_rates for champion in self.champions})
@@ -218,8 +233,8 @@ class Roster:
                 second_best_counterpick_win_rate = opponent_win_rates[second_best_counterpick]
                 second_best_counterpick_N = opponent_champion.normalized_matchup_N[second_best_counterpick]
             else:
-                second_best_counterpick = None
-                second_best_counterpick_win_rate = pd.NA
+                second_best_counterpick = 0
+                second_best_counterpick_win_rate = 0
                 second_best_counterpick_N = 0
             counterpick_win_rate_improvement = best_counterpick_win_rate - second_best_counterpick_win_rate
 
@@ -284,26 +299,22 @@ class Roster:
                     ~counterpick_matchups["Second Best Counterpick Win Rate"].isna()
                 ]
                 marginal_win_rate_improvement = (
-                    (
-                        counterpick_matchups_with_second_pick["Opponent Pick Rate"]
-                        * (
-                            counterpick_matchups_with_second_pick["Best Counterpick Win Rate"]
-                            - counterpick_matchups_with_second_pick["Second Best Counterpick Win Rate"]
-                        )
-                    ).sum()
-                    if counterpick_rate > 0
-                    else pd.NA
-                )
+                    counterpick_matchups_with_second_pick["Opponent Pick Rate"]
+                    * (
+                        counterpick_matchups_with_second_pick["Best Counterpick Win Rate"]
+                        - counterpick_matchups_with_second_pick["Second Best Counterpick Win Rate"]
+                    )
+                ).sum()
                 # Calculate how much more you win Per Match becuase this champion is now included in your champion pool
                 marginal_win_rate_improvement_per_match = marginal_win_rate_improvement / counterpick_rate
                 # Calculate how much more you win with this champion versus the champion's default win rate
                 improvement_over_base_champion_win_rate = counterpick_win_rate - champion.raw_win_rate
 
             else:
-                counterpick_win_rate = pd.NA
-                marginal_win_rate_improvement = pd.NA
-                marginal_win_rate_improvement_per_match = pd.NA
-                improvement_over_base_champion_win_rate = pd.NA
+                counterpick_win_rate = 0
+                marginal_win_rate_improvement = 0
+                marginal_win_rate_improvement_per_match = 0
+                improvement_over_base_champion_win_rate = 0
 
             # Identify how often you are within 1% of being best counterpick
             almost_counterpick_rate = matchups_df[
