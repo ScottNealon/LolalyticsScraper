@@ -9,6 +9,9 @@ from pathlib import Path
 import requests
 import tqdm
 
+# Packege Imports
+from lolalytics_scraper import ROLES
+
 DATA_DIR_PATH = Path(__file__).parent.joinpath("data")
 RUNES_PATH = DATA_DIR_PATH.joinpath("runes.json")
 ITEMS_PATH = DATA_DIR_PATH.joinpath("items.json")
@@ -117,13 +120,7 @@ def update_lolalytics_champion_data(
             + len("support")
             + 6
         )
-        iterator = tqdm.tqdm(
-            tuple(
-                itertools.product(
-                    patches_to_update, champion_ids.items(), ["top", "jungle", "middle", "bottom", "support"]
-                )
-            )
-        )
+        iterator = tqdm.tqdm(tuple(itertools.product(patches_to_update, champion_ids.items(), ROLES)))
         for patch, (champion, champion_id), role in iterator:
             iterator.set_description(f"{patch}: {champion} ({role})".ljust(str_len))
             api_key_mapping = {
@@ -159,7 +156,7 @@ def format_lolalytics_data(raw_lolalytics_data: dict[str, dict]) -> dict[int, di
         for champion_id, champion_data in patch_data.items():
             for champion_role, champion_role_data in champion_data.items():
                 # Reformat matchup data into dicts
-                for enemy_role in ["top", "jungle", "middle", "bottom", "support"]:
+                for enemy_role in ROLES:
                     if f"enemy_{enemy_role}" in champion_role_data:
                         champion_role_data[f"enemy_{enemy_role}"] = {
                             champion_id: {"matches": matches, "wins": wins, "win_rate": wins / matches}
@@ -186,7 +183,7 @@ def format_lolalytics_data(raw_lolalytics_data: dict[str, dict]) -> dict[int, di
                         for patch, patch_data in champion_role_data.items()
                     )
                     / total_n
-                    for role in ["top", "jungle", "middle", "bottom", "support"]
+                    for role in ROLES
                 }
                 total_average_win_rate = (
                     sum(
@@ -205,7 +202,7 @@ def format_lolalytics_data(raw_lolalytics_data: dict[str, dict]) -> dict[int, di
                 }
 
                 for patch, patch_data in champion_role_data.items():
-                    for enemy_role in ["top", "jungle", "middle", "bottom", "support"]:
+                    for enemy_role in ROLES:
                         if f"enemy_{enemy_role}" in patch_data:
                             for enemy_champion_id, matchup_data in patch_data[f"enemy_{enemy_role}"].items():
                                 new_lolalytics_data[champion_id][champion_role].setdefault(
@@ -226,7 +223,7 @@ def format_lolalytics_data(raw_lolalytics_data: dict[str, dict]) -> dict[int, di
                                     + matchup_data["wins"]
                                 )
                 # Sum up win rates
-                for enemy_role in ["top", "jungle", "middle", "bottom", "support"]:
+                for enemy_role in ROLES:
                     for enemy_champion_id, matchup_data in new_lolalytics_data[champion_id][champion_role][
                         f"enemy_{enemy_role}"
                     ].items():
