@@ -342,9 +342,7 @@ class Roster:
             }
 
         champion_pool_results_df = (
-            pd.DataFrame(champion_pool_results)
-            .transpose()
-            .sort_values(by="Marginal Win Rate Improvement", ascending=False)
+            pd.DataFrame(champion_pool_results).transpose().sort_values(by="Counterpick Rate", ascending=False)
         )
         champion_pool_results_df.index.name = "Champion Pool"
 
@@ -436,7 +434,16 @@ class Roster:
 
         champion_pool_results_style = champion_pool_results_df.style
         champion_pool_results_style.format(format_func)
-        champion_pool_results_style.bar(subset=["Counterpick Rate", "Within 1% Counterpick Rate"], color="green")
+        champion_pool_results_style.bar(
+            subset=[
+                "Counterpick Rate",
+                "Within 1% Counterpick Rate",
+                "Marginal Win Rate Improvement",
+                "Marginal Win Rate Improvement Per Match",
+                "Improvement Over Base Champion Win Rate",
+            ],
+            color="green",
+        )
         champion_pool_results_style.bar(
             subset=["Counterpick Win Rate", "Blind Pick Base Win Rate"], align="left", color="green"
         )
